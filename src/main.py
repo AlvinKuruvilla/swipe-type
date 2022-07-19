@@ -15,18 +15,16 @@ import warnings
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    p = os.path.join(os.getcwd(), "data")
-    swipeset = []
-    onlyfiles = [f for f in os.listdir(p) if os.path.isfile(os.path.join(p, f))]
-    for file in tqdm(onlyfiles):
-        # print(file)
-        words = unique_words_from_file(os.path.join(os.getcwd(), "data", file))
-        # print(words)
-        for unique_word in words:
-            # At this current moment we can reasonably assume that all the files have been generated
-            # print(file)
-            trajectories, word = extract_trajectories(
-                os.path.join(os.getcwd(), "data", file),
-                unique_word,
-            )
-            print(trajectories)
+    words = unique_words_from_file(
+        os.path.join(os.getcwd(), "data", "n6ml9p7egar03rp99p8neh89if.log")
+    )
+    print(words)
+    # print(words)
+    # for unique_word in words:
+    #     # At this current moment we can reasonably assume that all the files have been generated
+    #     # print(file)
+    #     trajectories, word = extract_trajectories(
+    #         os.path.join(os.getcwd(), "data", "n6ml9p7egar03rp99p8neh89if.log"),
+    #         unique_word,
+    #     )
+    #     print(trajectories)

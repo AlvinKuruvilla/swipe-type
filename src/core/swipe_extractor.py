@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 from typing import List
 from .swipe import Backing_File, Swipe
@@ -28,37 +29,27 @@ def grab_first():
     return df
 
 
-def unique_words(df: pd.DataFrame):
-    data = df.iloc[:, :1].values.tolist()
-    store = set()
-    for row in data:
-        # Since the log file is not actually a csv we can't do a simple column name/index lookup
-        string = row[10]
-        sep = " "
-        # Use a regex of the space character to split out the sentence column from the string
-        sentence = string.split(sep, 1)[0]
-        store.add(sentence)
-    return store
-
-
 def unique_words_from_file(path: str):
-    file = open(path, "r")
-    lines = file.readlines()
-    search_space = lines[1:]
-    found = set()
-    for line in search_space:
-        word = list(line.split(" "))[10]
-        if (
-            word != "me"
-            and word != "vanke"
-            and word != "told"
-            and word != "mary"
-            and word != "pembina"
-            and word != "interactions"
-            and word != "haciendo"
-        ):
-            found.add(word)
-    return found
+    # XXX: TEST
+    # TODO: Reading the file should be its own method.... we should only operate on the DataFrame (take the df as a parameter)
+    df = pd.read_csv(
+        path,
+        sep=" ",
+        usecols=[
+            "word",
+        ],
+    )
+    return df.word.unique().tolist()
+    ##* We may need to put back this if statement and remove the value from the unique list
+    # if (
+    #     word != "me"
+    #     and word != "vanke"
+    #     and word != "told"
+    #     and word != "mary"
+    #     and word != "pembina"
+    #     and word != "interactions"
+    #     and word != "haciendo"
+    # ):
 
 
 def unique_sentences(df: pd.DataFrame):
@@ -126,17 +117,26 @@ def write_to_file(data, key):
 
 
 def extract_timestamps_from_file(path: str, header_present=False):
-    file = open(path, "r")
-    lines = file.readlines()
-    timestamps = []
-    for line in lines:
-        res = list(line.split(" "))[1]
-        word = list(line.split(" "))[10]
-        timestamps.append((res))
-    if header_present == True:
-        return (timestamps[1:], word)
-    elif header_present == False:
-        return (timestamps, word)
+    # XXX: TEST
+    # TODO: Reading the file should be its own method.... we should only operate on the DataFrame (take the df as a parameter)
+    df = pd.read_csv(
+        path,
+        sep=" ",
+        usecols=[
+            "sentence",
+            "timestamp",
+            "keyb_width",
+            "keyb_height",
+            "event",
+            "x_pos",
+            "y_pos",
+            "x_radius",
+            "y_radius",
+            "angle",
+            "word",
+        ],
+    )
+    return df.loc["timestamp"].values.tolist()
 
 
 def extract_timestamps_from_lines(lines: List[str]):
@@ -163,7 +163,7 @@ def compute_timestamp_deltas(timestamps: List[int]):
     except ValueError:
         # print(timestamps)
         curr = int(timestamps[1])
-        print("curr", curr)
+        # print("curr", curr)
         deltas = []
         for i in range(2, len(timestamps)):
             delta = int(timestamps[i]) - curr
@@ -173,23 +173,17 @@ def compute_timestamp_deltas(timestamps: List[int]):
 
 
 def precheck_deltas(deltas: List[int]):
-    for delta in deltas:
-        if delta < THRESHOLD:
-            continue
-        if delta > THRESHOLD:
-            return False
-    return True
+    # XXX: TEST
+    return all(x > THRESHOLD for x in deltas)
 
 
 def extract_swipes_indices(deltas: List[int]):
+    # XXX: TEST
     # print("deltas: ", (deltas))
     if precheck_deltas(deltas) == True:
         return None
-    above = []
-    for i in range(0, len(deltas)):
-        if deltas[i] >= THRESHOLD:
-            above.append(i)
-    return above
+    x = np.asarray(deltas)
+    return np.where(x > THRESHOLD)[0].values.tolist()
 
 
 def into_intervals(indices: List[int]):
@@ -206,7 +200,6 @@ def into_intervals(indices: List[int]):
         return intervals
     try:
         for i in range(0, len(indices)):
-            # FIXME: So let's say our indices are: [0, 22, 44], the code currently returns [0, 22], [22, 44]] when instead it should return [0, 22], [23, 44]]
             s = [indices[i], indices[i + 1] + 1]
             intervals.append(s)
         return intervals
