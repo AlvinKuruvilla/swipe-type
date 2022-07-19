@@ -24,41 +24,9 @@ if __name__ == "__main__":
         # print(words)
         for unique_word in words:
             # At this current moment we can reasonably assume that all the files have been generated
+            # print(file)
             trajectories, word = extract_trajectories(
                 os.path.join(os.getcwd(), "data", file),
                 unique_word,
             )
-            write_to_file(trajectories, unique_word)
-            timestamps, word = extract_timestamps_from_file(
-                os.path.join(os.getcwd(), "src", "core", "temp", unique_word + ".log")
-            )
-
-            # print("New:", timestamps)
-            # print(unique_word)
-            delta = compute_timestamp_deltas(timestamps)
-            # print(delta)
-            indices = extract_swipes_indices(delta)
-            if indices is not None:
-                # print(indices)
-                intervals = into_intervals(indices)
-                # print(intervals)
-                # input()
-                swipes = create_swipes(
-                    timestamps,
-                    word,
-                    intervals,
-                    os.path.join(
-                        os.getcwd(), "src", "core", "temp", unique_word + ".log"
-                    ),
-                )
-                swipeset.append(swipes)
-            elif indices is None:
-                warnings.warn(
-                    "No indices above the threshold, so swipes cannot be made"
-                )
-    for swipes in tqdm(swipeset):
-        for swipe in swipes:
-            # print(swipe.get_key())
-            Feature_Extractor.extract_all_features(swipe)
-    with open("data.pickle", "wb") as handle:
-        pickle.dump(swipes, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            print(trajectories)

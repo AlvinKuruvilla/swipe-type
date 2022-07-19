@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from typing import List
-from swipe import Backing_File, Swipe
+from .swipe import Backing_File, Swipe
 from pathlib import Path
 import matplotlib.pyplot as plt
 
@@ -75,13 +75,25 @@ def unique_sentences(df: pd.DataFrame):
 
 
 def extract_trajectories(path: str, key: str):
-    file = open(path, "r")
-    lines = file.readlines()
-    found = []
-    for line in lines:
-        word = list(line.split(" "))[10]
-        if key == word:
-            found.append(line)
+    # TODO: Reading the file should be its own method.... we should only operate on the DataFrame (take the df as a parameter)
+    df = pd.read_csv(
+        path,
+        sep=" ",
+        usecols=[
+            "sentence",
+            "timestamp",
+            "keyb_width",
+            "keyb_height",
+            "event",
+            "x_pos",
+            "y_pos",
+            "x_radius",
+            "y_radius",
+            "angle",
+            "word",
+        ],
+    )
+    found = df.loc[df["word"] == key].values.tolist()
     return (found, key)
 
 
