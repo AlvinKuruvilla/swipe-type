@@ -75,7 +75,9 @@ def unique_sentences(df: pd.DataFrame):
 
 
 def extract_trajectories(path: str, key: str):
+    # XXX: TEST
     # TODO: Reading the file should be its own method.... we should only operate on the DataFrame (take the df as a parameter)
+    # NOTE:The is_error column is purposely ignored since the values for it are not always present
     df = pd.read_csv(
         path,
         sep=" ",
@@ -98,10 +100,25 @@ def extract_trajectories(path: str, key: str):
 
 
 def write_to_file(data, key):
+    # XXX: TEST
     # data_file = Path(os.path.join(os.getcwd(), "src", "py", "temp", key + ".log"))
     data_file = Path(os.path.join(os.getcwd(), "src", "core", "temp", key + ".log"))
     data_file.touch(exist_ok=True)
     f = open(data_file, "w+")
+    column_names = [
+        "sentence",
+        "timestamp",
+        "keyb_width",
+        "keyb_height",
+        "event",
+        "x_pos",
+        "y_pos",
+        "x_radius",
+        "y_radius",
+        "angle",
+        "word",
+    ]
+    f.write(column_names)
     for line in data:
         word = list(line.split(" "))[10]
         if key == word:
