@@ -5,3 +5,4 @@ black
 tqdm
 pyenchant
 numpy
+rich
