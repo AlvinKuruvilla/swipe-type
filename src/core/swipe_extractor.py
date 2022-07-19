@@ -5,8 +5,13 @@ from typing import List
 from .swipe import Backing_File, Swipe
 from pathlib import Path
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 THRESHOLD = 30
+
+
+def flatten(xss):
+    return [x for xs in xss for x in xs]
 
 
 def plot_deltas(list_delta):
@@ -29,17 +34,24 @@ def grab_first():
     return df
 
 
-def unique_words_from_file(path: str):
+def unique_words_from_file():
+    p = os.path.join(os.getcwd(), "data")
+    words = []
+    onlyfiles = [f for f in os.listdir(p) if os.path.isfile(os.path.join(p, f))]
     # XXX: TEST
     # TODO: Reading the file should be its own method.... we should only operate on the DataFrame (take the df as a parameter)
-    df = pd.read_csv(
-        path,
-        sep=" ",
-        usecols=[
-            "word",
-        ],
-    )
-    return df.word.unique().tolist()
+    for file in tqdm(onlyfiles):
+        df = pd.read_csv(
+            os.path.join(os.getcwd(), "data", file),
+            sep=" ",
+            usecols=[
+                "word",
+            ],
+        )
+        df_word_list = df.word.unique().tolist()
+        if not "me" in df_word_list:
+            words.append(df_word_list)
+    return flatten(words)
     ##* We may need to put back this if statement and remove the value from the unique list
     # if (
     #     word != "me"
@@ -69,10 +81,43 @@ def extract_trajectories(path: str, key: str):
     # XXX: TEST
     # TODO: Reading the file should be its own method.... we should only operate on the DataFrame (take the df as a parameter)
     # NOTE:The is_error column is purposely ignored since the values for it are not always present
-    df = pd.read_csv(
-        path,
-        sep=" ",
-        usecols=[
+    try:
+        df = pd.read_csv(
+            path,
+            sep=" ",
+            usecols=[
+                "sentence",
+                "timestamp",
+                "keyb_width",
+                "keyb_height",
+                "event",
+                "x_pos",
+                "y_pos",
+                "x_radius",
+                "y_radius",
+                "angle",
+                "word",
+            ],
+        )
+        found = df.loc[df["word"] == key].values.tolist()
+        return (found, key)
+    except ValueError:
+        found = []
+        df = pd.read_csv(path, sep=" ")
+        for row in df.itertuples(index=False):
+            if row[10] == key:
+                found.append(row)
+        return (found, key)
+
+
+def write_to_file(data, key):
+    # XXX: TEST
+    # TODO: Does not write a heading to the generated file
+    # data_file = Path(os.path.join(os.getcwd(), "src", "py", "temp", key + ".log"))
+    data_file = Path(os.path.join(os.getcwd(), "src", "core", "temp", key + ".log"))
+    data_file.touch(exist_ok=True)
+    with open(data_file, "r+") as f:
+        column_names = [
             "sentence",
             "timestamp",
             "keyb_width",
@@ -84,59 +129,22 @@ def extract_trajectories(path: str, key: str):
             "y_radius",
             "angle",
             "word",
-        ],
-    )
-    found = df.loc[df["word"] == key].values.tolist()
-    return (found, key)
-
-
-def write_to_file(data, key):
-    # XXX: TEST
-    # data_file = Path(os.path.join(os.getcwd(), "src", "py", "temp", key + ".log"))
-    data_file = Path(os.path.join(os.getcwd(), "src", "core", "temp", key + ".log"))
-    data_file.touch(exist_ok=True)
-    f = open(data_file, "w+")
-    column_names = [
-        "sentence",
-        "timestamp",
-        "keyb_width",
-        "keyb_height",
-        "event",
-        "x_pos",
-        "y_pos",
-        "x_radius",
-        "y_radius",
-        "angle",
-        "word",
-    ]
-    f.write(column_names)
-    for line in data:
-        word = list(line.split(" "))[10]
-        if key == word:
-            f.write(line)
+        ]
+        # print(cols)
+        for line in data:
+            word = line[10]
+            if key == word:
+                f.write(f"{line}")
 
 
 def extract_timestamps_from_file(path: str, header_present=False):
     # XXX: TEST
     # TODO: Reading the file should be its own method.... we should only operate on the DataFrame (take the df as a parameter)
-    df = pd.read_csv(
-        path,
-        sep=" ",
-        usecols=[
-            "sentence",
-            "timestamp",
-            "keyb_width",
-            "keyb_height",
-            "event",
-            "x_pos",
-            "y_pos",
-            "x_radius",
-            "y_radius",
-            "angle",
-            "word",
-        ],
-    )
-    return df.loc["timestamp"].values.tolist()
+    df = pd.read_csv(path, sep=" ")
+    try:
+        return df.loc["timestamp"].values.tolist()
+    except KeyError:
+        return df.iloc[:, 1].values.tolist()
 
 
 def extract_timestamps_from_lines(lines: List[str]):

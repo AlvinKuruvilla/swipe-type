@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def string_to_list(string: str):
     # FIXME: Improve this regex so it only looks at spaces and does not accidentally think a quote, or anything else, is
     # part of the expression string
@@ -13,11 +16,25 @@ class Backing_File:
         return self.path
 
     def lookup_row_by_timestamp(self, timestamp: str):
-        f = open(self.get_path(), "r")
-        lines = f.readlines()
-        for line in lines:
-            if line.split(" ")[1] == timestamp:
-                return line
+        df = pd.read_csv(
+            self.get_path(),
+            sep=" ",
+            usecols=[
+                "sentence",
+                "timestamp",
+                "keyb_width",
+                "keyb_height",
+                "event",
+                "x_pos",
+                "y_pos",
+                "x_radius",
+                "y_radius",
+                "angle",
+                "word",
+            ],
+        )
+
+        return df.loc[df["timestamp"] == timestamp].values.tolist()
 
 
 class Swipe:

@@ -1,3 +1,4 @@
+from rich.traceback import install
 from core.features import Feature_Extractor
 from core.swipe_extractor import (
     compute_timestamp_deltas,
@@ -12,19 +13,13 @@ from core.swipe_extractor import (
 import os
 import pickle
 import warnings
-from tqdm import tqdm
 
 if __name__ == "__main__":
-    words = unique_words_from_file(
-        os.path.join(os.getcwd(), "data", "n6ml9p7egar03rp99p8neh89if.log")
-    )
-    print(words)
+    install()
+    words = unique_words_from_file()
     # print(words)
-    # for unique_word in words:
-    #     # At this current moment we can reasonably assume that all the files have been generated
-    #     # print(file)
-    #     trajectories, word = extract_trajectories(
-    #         os.path.join(os.getcwd(), "data", "n6ml9p7egar03rp99p8neh89if.log"),
-    #         unique_word,
-    #     )
-    #     print(trajectories)
+    for unique_word in words:
+        timestamps = extract_timestamps_from_file(
+            os.path.join(os.getcwd(), "src", "core", "temp", unique_word + ".log")
+        )
+        print(timestamps)
